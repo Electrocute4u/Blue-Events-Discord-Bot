@@ -1,4 +1,5 @@
-![Github Banner](https://github.com/user-attachments/assets/97cb0ba0-e62f-4743-ab32-ad1dc07a2e97)
+![Github Banner](https://github.com/user-attachments/assets/e3c64be0-5d91-4846-b295-1e1ff61ce9f7)
+
 
 
 # Blooby Events Discord Bot
