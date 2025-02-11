@@ -1,6 +1,7 @@
 blooby_event
 commandFunctions
 commands/usercontextmenu
+contextmenu-example
 events
 images
 node_modules
