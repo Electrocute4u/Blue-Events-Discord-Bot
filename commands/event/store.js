@@ -68,9 +68,6 @@ module.exports = {
       }, {
         name: "Hong Kong Dollar",
         value: "HKD"
-      }, {
-        name: "Egyptian Pound",
-        value: "EGP"
       })
       .setRequired(false)
     ),
