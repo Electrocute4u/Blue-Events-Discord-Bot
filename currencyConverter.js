@@ -1,8 +1,8 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 /**
  * Convert an amount from USD to the selected currency.
- * @param {number|string} amount - The amount in listed currency.
  * @param {string} base - The base currency (default: "USD").
+ * @param {number|string} amount - The amount in listed currency.
  * @param {string} target - The target currency (default: "USD").
  * @returns {Promise<string>} - The converted amount formatted with two decimals.
  */
