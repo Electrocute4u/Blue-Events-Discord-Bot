@@ -54,7 +54,7 @@ module.exports = {
                 name: "Musical Chairs",
                 value: "musicalchairs"
             }, {
-                name: "Redrover",
+                name: "Red Rover",
                 value: "redrover"
             }, {
                 name: "Showdown",
@@ -94,7 +94,7 @@ module.exports = {
     .addSubcommand(subcommand =>
       subcommand
         .setName('mode')
-        .setDescription('Get information about a specific mode (i.e Redrover, Block Party, Spleef, etc.)')
+        .setDescription('Get information about a specific mode (i.e Red Rover, Block Party, Spleef, etc.)')
         .addStringOption(option =>
           option
           .setName("event")
@@ -121,7 +121,7 @@ module.exports = {
                 name: "Musical Chairs",
                 value: "musicalchairs"
             }, {
-                name: "Redrover",
+                name: "Red Rover",
                 value: "redrover"
             }, {
                 name: "Showdown",
@@ -175,7 +175,7 @@ module.exports = {
                 name: "Musical Chairs",
                 value: "musicalchairs"
             }, {
-                name: "Redrover",
+                name: "Red Rover",
                 value: "redrover"
             }, {
                 name: "Showdown",
