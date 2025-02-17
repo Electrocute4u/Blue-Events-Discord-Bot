@@ -28,3 +28,9 @@ These commands are currently not possible due to API limitations, but may become
 - `/event passholders check [playername]` - Check if the event pass is still active for a player
 
 *This bot is a non-profit based project and all artwork re-used and or modified in this Discord bot belongs to their respective copyright holders. If you have any inquires about the artwork used or have any complaints, please refer your complaint(s) and or any question(s) on Github or through a Private Message on Discord at @Milim, formally known as Milim#0001.*
+
+### Terms of Service
+You can find the bot's Terms of Service in the Github repo [here](https://github.com/Electrocute4u/Blue-Events-Discord-Bot/blob/main/Terms_of_Service.md).
+
+### Privacy Policy
+Our Privacy Policy can be found in the Github repo [here](https://github.com/Electrocute4u/Blue-Events-Discord-Bot/blob/main/Privacy_Policy.md).
