@@ -197,9 +197,13 @@ module.exports = {
                 value: "waterdrop"
             }
         )
-        )
-        
-    ),
+    )
+    )
+    .addSubcommand(subcommand =>
+        subcommand
+          .setName('random')
+          .setDescription('Unsure what event to host? Let the bot decide for you!')
+      ),
     async execute(interaction, bot) {
       const {readFileSync} = require("fs")
 
