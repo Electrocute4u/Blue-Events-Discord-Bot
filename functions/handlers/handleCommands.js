@@ -49,17 +49,18 @@ module.exports = (bot) => {
         try {
             
             if(dev == false){
-                   // Delete all local (/) commands from the set test server.
-                   // Prevents duplication of global and local (/) commands on public version.
-                   rest.get(Routes.applicationGuildCommands(clientid, slashGuildID))
-                   .then(data => {
-                       const promises = [];
-                       for (const command of data) {
-                           const deleteUrl = `${Routes.applicationGuildCommands(clientid, slashGuildID)}/${command.id}`;
-                           promises.push(rest.delete(deleteUrl));
-                       }
-                   return Promise.all(promises);
-            });
+            // Delete all local (/) commands from the set test server.
+            // Prevents duplication of global and local (/) commands on public version.
+            //   rest.get(Routes.applicationGuildCommands(clientid, slashGuildID))
+            //   .then(data => {
+            //      const promises = [];
+            //      for (const command of data) {
+            //          const deleteUrl = `${Routes.applicationGuildCommands(clientid, slashGuildID)}/${command.id}`;
+            //          promises.push(rest.delete(deleteUrl));
+            //      }
+            //   return Promise.all(promises);
+            // });
+
             tools.CustomLog("Deleted all local (/) commands from Test Server", "Info")
             tools.CustomLog("Started refreshing Public Application (/) Commands...", "Info")
                // Filters out the admin commands from commandArray so only global commands remains
