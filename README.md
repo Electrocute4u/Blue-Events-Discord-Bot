@@ -17,6 +17,7 @@ Slash commands below having `< >` are optional, while `[ ]` are required fields.
 The main core commands for events
 - `/event current` - Display info (event name, host, time started, and if joinable) if a event is active
 - `/event last` - Show the last event info (event winner(s), host, time started/ended and team (Turf Wars only))
+- `/event random` - Can't decide on a event? Get a random event suggestion from the bot!
 - `/event cooldown [username] <event>` - Display a list with all event cooldowns or a specific event for a player
 - `/event stats [playername]` - Check the current event wins and their last event won, if any.
 - `/event mode [event]` - Get information about a specific mode (i.e Redrover, Block Party, Spleef, etc.)
