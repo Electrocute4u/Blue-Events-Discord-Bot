@@ -10,10 +10,7 @@ module.exports = {
       option
       .setName("server")
       .setDescription("Select a server (defaults to all servers)")
-      .setChoices({
-        name: "Valatic",
-        value: "valatic"
-      }, {
+      .setChoices(  {
         name: "Mineseed",
         value: "mineseed"
       }, {
