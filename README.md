@@ -3,10 +3,16 @@
 
 
 
-# Blooby Events Discord Bot
+# Blue Events - Discord Bot
 
 ## What is this project?
-Blooby Events Discord Bot is an official tool for the Bloobyboi's Events, offering information on events such as but not limited to Redrover, Block Party, Floor is Lava and many more. Initially, it provides event details and player stats. As it integrates with the private API, the bot will track active and past events, display temporary leaderboards, and update real-time event data. The bot aims to give players easy access to event information, stats, and event winners, with more features coming as the API evolves over time. Originally developed for players as a User Install, but its also available for any interested partnered server owner(s) to add to their own server as a Discord bot.
+The Blue Events Discord Bot is the official companion tool for Blue's Events, designed to provide quick and accessible information about popular events like Redrover, Block Party, Floor is Lava, and many others. Initially, the bot offers event overviews and player statistics. As it continues integrating with the API, it will also support real-time event tracking, leaderboards, and more.
+
+Built primarily for players as a user-installable tool, the bot is also available for partnered server owners who wish to enhance their communities with seamless event integration and stats tracking.
+
+## About Blue Events
+Blue Events is home to some of the most engaging and community-driven Minecraft minigames. \
+You can read more about Blue Events on our [Wiki](https://blueevents.wiki/)
 
 ## Bot Commands
 Slash commands below having `< >` are optional, while `[ ]` are required fields.
