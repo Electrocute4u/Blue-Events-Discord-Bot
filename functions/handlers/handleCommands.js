@@ -1,106 +1,119 @@
-const { REST, Routes } = require('discord.js');
+const { REST, Routes } = require("discord.js");
+const path = require("path");
+const { readdirSync, readFileSync } = require("fs");
 
-const { readdirSync, readFileSync } = require("fs")
-
-// import and require .env reference
-require('dotenv').config();
+// Load environment variables
+require("dotenv").config();
 
 module.exports = (bot) => {
+  bot.handleCommands = async () => {
+    // Load config
+    const configPath = path.join(__dirname, "../../config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    const tools = require(path.join(__dirname, "../../utils/functions"));
 
+    const devCommands = [];
+    const partnerOnlyCommands = [];
 
-    bot.handleCommands = async() => {
-    // Calling config file
-    const config = JSON.parse(readFileSync(`./config.json`, 'utf8'))
-    
-    // Calling in functions
-    const tools = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/utils/functions`);
+    const commandFolders = readdirSync(path.join(__dirname, "../../commands"));
+    for (const folder of commandFolders) {
+      const commandFiles = readdirSync(path.join(__dirname, "../../commands", folder)).filter(file => file.endsWith(".js"));
 
-        // Store all Owner-only functions here by name
-        let devCommands = []
+      const { commands, commandArray } = bot;
+      for (const file of commandFiles) {
+        const commandPath = path.join(__dirname, "../../commands", folder, file);
+        const command = require(commandPath);
+        commands.set(command.data.name, command);
 
-        // Find subfolders in /commands then push all .js files to commandArray in bot.js
-        const commandFolders = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/commands`)
-        for (const folder of commandFolders) {
-            const commandFiles = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/commands/${folder}`).filter((file) => file.endsWith(".js"))
- 
-            const { commands, commandArray } = bot;
-            for (const file of commandFiles) {
-                const command = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/commands/${folder}/${file}`);
-                commands.set(command.data.name, command);
-                // Create exception for admin commands
-                if(folder.toLowerCase() == "admin") devCommands.push(command.data.name.toLowerCase())
-                commandArray.push(command.data.toJSON());
-            }
-        }
-        // Call a synched version of config.json
-        const {dev, slashGuildID, slashGuildIDPublic} = JSON.parse(readFileSync(`./config.json`, 'utf8'))
+        if (folder.toLowerCase() === "admin") devCommands.push(command.data.name.toLowerCase());
+        if (command.partnerOnly) partnerOnlyCommands.push(command.data.name.toLowerCase());
 
-        // Assign token depending on bot version
-        let token = dev == false ? process.env.publicToken : process.env.devToken
-  
-        // Assign client ID depending on version
-        let clientid = dev == false ? process.env.publicClientID : process.env.devClientID
+        commandArray.push(command.data.toJSON());
+      }
+    }
 
-        const guildid = dev === false ? slashGuildIDPublic : slashGuildID;
+    // Refresh config again
+    const { dev, slashGuildID, slashGuildIDPublic } = JSON.parse(readFileSync(configPath, "utf8"));
 
-        // Using the REST Version 10 for stable performence.
-        const rest = new REST({version: "10"}).setToken(token);
-        
+    const token = dev ? process.env.devToken : process.env.publicToken;
+    const clientId = dev ? process.env.devClientID : process.env.publicClientID;
+    const guildId = dev ? slashGuildID : slashGuildIDPublic;
+
+    const rest = new REST({ version: "10" }).setToken(token);
+
+    try {
+      if (!dev) {
+        // 💥 DELETE all local Dev Server (guild) commands
+        tools.CustomLog("Deleting all local guild (/) commands from Dev Server...", "Info");
+
+        const commandsInGuild = await rest.get(Routes.applicationGuildCommands(clientId, slashGuildID));
+        const deletePromises = commandsInGuild.map(cmd => 
+          rest.delete(Routes.applicationGuildCommand(clientId, slashGuildID, cmd.id))
+        );
+        await Promise.all(deletePromises);
+
+        tools.CustomLog(`Successfully deleted ${commandsInGuild.length} guild (/) commands from Dev Server`, "Info");
+      }
+
+      if (!dev) {
+        tools.CustomLog("[PUBLIC] Uploading Public Global Commands...", "Info");
+
+        // Upload all public commands EXCEPT dev-only and partner-only commands
+        const globalCommands = bot.commandArray.filter(cmd => 
+          !devCommands.includes(cmd.name) && !partnerOnlyCommands.includes(cmd.name)
+        ); 
         try {
-            
-            if(dev == false){
-            // Delete all local (/) commands from the set test server.
-            // Prevents duplication of global and local (/) commands on public version.
-            //   rest.get(Routes.applicationGuildCommands(clientid, slashGuildID))
-            //   .then(data => {
-            //      const promises = [];
-            //      for (const command of data) {
-            //          const deleteUrl = `${Routes.applicationGuildCommands(clientid, slashGuildID)}/${command.id}`;
-            //          promises.push(rest.delete(deleteUrl));
-            //      }
-            //   return Promise.all(promises);
-            // });
-
-            tools.CustomLog("Deleted all local (/) commands from Test Server", "Info")
-            tools.CustomLog("Started refreshing Public Application (/) Commands...", "Info")
-               // Filters out the admin commands from commandArray so only global commands remains
-               const noDevForPublic = bot.commandArray.filter(function (command) {
-                   return !devCommands.includes(command.name);
-               });
-               
-               // Pushes the (/) commands globally 
-               await rest.put(Routes.applicationCommands(clientid), {
-                   body: noDevForPublic
-               })
-               tools.CustomLog("Started refreshing Global Application (/) Commands...", "Info")
-               // Filter out all global (/) commands so only admin commands remains
-               const onlyDevForSupportServer = bot.commandArray.filter(function (command) {
-                   return devCommands.includes(command.name);
-               });
-               // Push only admin (/) commands locally to the public test server
-               await rest.put(Routes.applicationGuildCommands(clientid, guildid), {
-                   body: onlyDevForSupportServer
-               })
-            }
-
-            // Push all (/) commands in dev environment for testing
-            if(dev == true){
-                tools.CustomLog("[DEV] Uploading Application (/) Commands...", "Info")
-                await rest.put(Routes.applicationGuildCommands(clientid, guildid), {
-                    body: bot.commandArray
-                })
-            }
-            if(dev == false){
-                tools.CustomLog(`[PUBLIC] Uploading Application (/) Commands...`, "Info")
-                await rest.put(Routes.applicationGuildCommands(clientid, guildid), {
-                    body: bot.commandArray
-                })
-            }
-            tools.CustomLog("Successfully uploaded all Application (/) commands!", "Info")
-            
-        } catch (error) {
-            console.log(error)
-            tools.CustomLog(error, "Error");
+          tools.CustomLog(`[PUBLIC] Registering ${globalCommands.length} global commands...`, "Info");
+          const res = await rest.put(Routes.applicationCommands(clientId), { body: globalCommands });
+          tools.CustomLog(`[PUBLIC] ✅ Registered ${res.length} global commands.`, "Success");
+        } catch (err) {
+          tools.CustomLog("❌ Failed to register global commands", "Error");
+          console.error(err);
         }
-    };
-}
+
+        tools.CustomLog("[PUBLIC] Uploading Partner Only (/) Commands to Partnered Servers...", "Info");
+
+        const allPartners = config.branches.flatMap(branch => 
+          (branch[Object.keys(branch)[0]].partners || []).map(p => ({
+            guildId: p.discord,
+            guildName: p.name
+          }))
+        );
+        
+        const partnerOnlyArray = bot.commandArray.filter(cmd => 
+          partnerOnlyCommands.includes(cmd.name)
+        );
+        
+        for (const { guildId, guildName } of allPartners) {
+          try {
+            await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: partnerOnlyArray });
+            tools.CustomLog(`✅ Registered Partner Only (/) Commands to Partner Guild: ${guildName} (${guildId})`, "Info");
+          } catch (err) {
+            tools.CustomLog(`❌ Partner ${guildName} (${guildId}) is missing. Error: ${err.message}`, "Error");
+          }
+        }
+        
+
+        tools.CustomLog("[PUBLIC] Uploading Admin (Dev) Commands Locally to Support Server...", "Info");
+
+        const onlyDevForSupportServer = bot.commandArray.filter(cmd => 
+          devCommands.includes(cmd.name)
+        );
+
+        await rest.put(Routes.applicationGuildCommands(clientId, slashGuildID), { body: onlyDevForSupportServer }); 
+      }
+
+      if (dev) {
+        tools.CustomLog("[DEV] Uploading Dev Server (/) Commands...", "Info");
+
+        await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: bot.commandArray });
+      }
+
+      tools.CustomLog("✅ Successfully registered all application (/) commands!", "Info");
+
+    } catch (error) {
+      console.error(error);
+      tools.CustomLog(error, "Error");
+    }
+  };
+};
