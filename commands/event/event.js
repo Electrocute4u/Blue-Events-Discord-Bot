@@ -1,5 +1,8 @@
 const { SlashCommandBuilder } = require("discord.js")
 const fs = require("fs") 
+const path = require("path");
+const config = JSON.parse(fs.readFileSync(path.join(__dirname, "../../config.json"), 'utf8'));
+const eventChoices = Object.entries(config.eventReadable).map(([name, value]) => ({ name, value }));
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -36,22 +39,7 @@ module.exports = {
           .setDescription("The specific event to get the cooldown for (defaults to all if this field is not included)")
           .setRequired(false)
           .setMinLength(1)
-          .setChoices(
-            { name: 'Bedwars', value: 'bedwars' },
-            { name: 'Block Party', value: 'woolshuffle' },
-            { name: 'Floor is Lava', value: 'woolwars' },
-            { name: 'Four Corners', value: 'fourcorners' },
-            { name: 'Grinch Simulator', value: 'grinchsimulator' },
-            { name: 'Mimic', value: 'mimic' },
-            { name: 'Musical Chairs', value: 'musicalchairs' },
-            { name: 'Red Rover', value: 'redrover' },
-            { name: 'Showdown', value: 'showdown' },
-            { name: 'Spleef', value: 'spleef' },
-            { name: 'TNT Run', value: 'tntrun' },
-            { name: 'TNT Tag', value: 'tnttag' },
-            { name: 'Turf Wars', value: 'turfwars' },
-            { name: 'Waterdrop', value: 'waterdrop' }
-          )
+          .setChoices(...eventChoices)
         )
     )
     .addSubcommand(subcommand =>
@@ -64,22 +52,7 @@ module.exports = {
           .setDescription("The specific event to get informations for")
           .setRequired(true)
           .setMinLength(1)
-          .setChoices(
-                    { name: 'Bedwars', value: 'bedwars' },
-                    { name: 'Block Party', value: 'woolshuffle' },
-                    { name: 'Floor is Lava', value: 'woolwars' },
-                    { name: 'Four Corners', value: 'fourcorners' },
-                    { name: 'Grinch Simulator', value: 'grinchsimulator' },
-                    { name: 'Mimic', value: 'mimic' },
-                    { name: 'Musical Chairs', value: 'musicalchairs' },
-                    { name: 'Red Rover', value: 'redrover' },
-                    { name: 'Showdown', value: 'showdown' },
-                    { name: 'Spleef', value: 'spleef' },
-                    { name: 'TNT Run', value: 'tntrun' },
-                    { name: 'TNT Tag', value: 'tnttag' },
-                    { name: 'Turf Wars', value: 'turfwars' },
-                    { name: 'Waterdrop', value: 'waterdrop' }
-                  )
+          .setChoices(...eventChoices)
         )
     )
     .addSubcommandGroup(group =>
@@ -105,22 +78,7 @@ module.exports = {
                   .setName('event')
                   .setDescription('The event to fetch the leaderboard for')
                   .setRequired(false)
-                  .setChoices(
-                    { name: 'Bedwars', value: 'bedwars' },
-                    { name: 'Block Party', value: 'woolshuffle' },
-                    { name: 'Floor is Lava', value: 'woolwars' },
-                    { name: 'Four Corners', value: 'fourcorners' },
-                    { name: 'Grinch Simulator', value: 'grinchsimulator' },
-                    { name: 'Mimic', value: 'mimic' },
-                    { name: 'Musical Chairs', value: 'musicalchairs' },
-                    { name: 'Red Rover', value: 'redrover' },
-                    { name: 'Showdown', value: 'showdown' },
-                    { name: 'Spleef', value: 'spleef' },
-                    { name: 'TNT Run', value: 'tntrun' },
-                    { name: 'TNT Tag', value: 'tnttag' },
-                    { name: 'Turf Wars', value: 'turfwars' },
-                    { name: 'Waterdrop', value: 'waterdrop' }
-                  )
+                  .setChoices(...eventChoices)
               )
           )
           .addSubcommand(sub =>
@@ -141,22 +99,7 @@ module.exports = {
                   .setName('event')
                   .setDescription('The event to fetch the leaderboard for')
                   .setRequired(false)
-                  .setChoices(
-                    { name: 'Bedwars', value: 'bedwars' },
-                    { name: 'Block Party', value: 'woolshuffle' },
-                    { name: 'Floor is Lava', value: 'woolwars' },
-                    { name: 'Four Corners', value: 'fourcorners' },
-                    { name: 'Grinch Simulator', value: 'grinchsimulator' },
-                    { name: 'Mimic', value: 'mimic' },
-                    { name: 'Musical Chairs', value: 'musicalchairs' },
-                    { name: 'Red Rover', value: 'redrover' },
-                    { name: 'Showdown', value: 'showdown' },
-                    { name: 'Spleef', value: 'spleef' },
-                    { name: 'TNT Run', value: 'tntrun' },
-                    { name: 'TNT Tag', value: 'tnttag' },
-                    { name: 'Turf Wars', value: 'turfwars' },
-                    { name: 'Waterdrop', value: 'waterdrop' }
-                  )
+                  .setChoices(...eventChoices)
               )
           )
     )
@@ -193,7 +136,7 @@ module.exports = {
 
     // Load leaderboard data
     const leaderboardData = JSON.parse(
-      fs.readFileSync('./blooby_event/leaderboard.json', 'utf8')
+      fs.readFileSync('./blue_events/leaderboard.json', 'utf8')
     );
 
     const allPlayers = Object.keys(leaderboardData);
@@ -206,22 +149,12 @@ module.exports = {
 
     await interaction.respond(results);
     },
-    async execute(interaction, bot) {
-      const {readFileSync} = require("fs")
+    async execute(interaction, tools, bot, eventContext) { 
+      const commandPath = path.join(__dirname, "../../commandFunctions", path.basename(__dirname), path.basename(__filename));
 
-      // Calling config and utils file
-      const config = JSON.parse(readFileSync(`./config.json`, 'utf8'))
-      const tools = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/utils/functions`)
-      
-      // Acquire file name and folder name
-      let dir = config.dev == true ? __dirname.split(`\\`).slice(-1)[0] : __dirname.split(`/`).slice(-1)[0]
-      let fileName = config.dev == true ? __filename.split(`\\`).slice(-1)[0] : __filename.split(`/`).slice(-1)[0]
- 
-      // Delete and reacquire the cache of command function
-      delete require.cache[require.resolve(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/commandFunctions/${dir}/${fileName}`)];
-      
-      // Executing the command file
-      const commandFile = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/commandFunctions/${dir}/${fileName}`)
-      await commandFile.command(interaction, tools, bot)
-    } 
+      delete require.cache[require.resolve(commandPath)];
+      const { command } = require(commandPath);
+
+      await command(interaction, tools, bot, eventContext);
+  } 
 }
