@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js")
+const path = require("path");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -68,22 +69,12 @@ module.exports = {
       })
       .setRequired(false)
     ),
-    async execute(interaction, bot) {
-      const {readFileSync} = require("fs")
+    async execute(interaction, tools, bot) { 
+      const commandPath = path.join(__dirname, "../../commandFunctions", path.basename(__dirname), path.basename(__filename));
 
-      // Calling config and utils file
-      const config = JSON.parse(readFileSync(`./config.json`, 'utf8'))
-      const tools = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/utils/functions`)
-      
-      // Acquire file name and folder name
-      let dir = config.dev == true ? __dirname.split(`\\`).slice(-1)[0] : __dirname.split(`/`).slice(-1)[0]
-      let fileName = config.dev == true ? __filename.split(`\\`).slice(-1)[0] : __filename.split(`/`).slice(-1)[0]
- 
-      // Delete and reacquire the cache of command function
-      delete require.cache[require.resolve(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/commandFunctions/${dir}/${fileName}`)];
-      
-      // Executing the command file
-      const commandFile = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/commandFunctions/${dir}/${fileName}`)
-      await commandFile.command(interaction, tools, bot)
-    } 
+      delete require.cache[require.resolve(commandPath)];
+      const { command } = require(commandPath);
+
+      await command(interaction, tools, bot);
+  }
 }
