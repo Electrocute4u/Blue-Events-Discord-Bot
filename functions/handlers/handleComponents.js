@@ -9,9 +9,9 @@ module.exports = (bot) => {
         const config = JSON.parse(readFileSync(`./config.json`, 'utf8'))
         
         // Require a synched version of directory and return all .js files
-        const componentFolders = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/components`);
+        const componentFolders = readdirSync(`./components`);
         for (const folder of componentFolders) {
-            const componentFiles = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/components/${folder}`).filter(
+            const componentFiles = readdirSync(`./components/${folder}`).filter(
                 (file) => file.endsWith(".js")
             );
             
@@ -22,7 +22,7 @@ module.exports = (bot) => {
             switch (folder) {
                 case "buttons":
                     for (const file of componentFiles) {
-                    const button = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/components/${folder}/${file}`)
+                    const button = require(`../../components/${folder}/${file}`)
                     buttons.set(button.data.name, button)
                     }
                 break;
