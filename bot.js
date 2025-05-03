@@ -1,49 +1,41 @@
-const { Collection, GatewayIntentBits, ActivityType } = require("discord.js")
-const discordClient = require("discord.js")
-const { readFileSync, readdirSync } = require("fs")
+const { Collection, GatewayIntentBits, ActivityType, Client } = require("discord.js");
+const { readFileSync, readdirSync } = require("fs");
+const path = require("path");
 
-// import and require .env reference
-require('dotenv').config();
+require("dotenv").config();
 const { publicToken, devToken } = process.env;
 
-// Calling config and utils file
-const config = JSON.parse(readFileSync(`./config.json`, 'utf8'))
-const tools = require(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/utils/functions`)
+// Load config and utilities
+const config = JSON.parse(readFileSync(path.join(__dirname, "config.json"), "utf8"));
+const tools = require(path.join(__dirname, "utils/functions"));
+const statsManager = require(path.join(__dirname, "utils/statsManager"));
+const leaderboardManager = require(path.join(__dirname, "utils/leaderboardManager"));
 
-// Set the bot Token depending on version
-let token;
-if (config.dev == false) token = publicToken
-if (config.dev == true) token = devToken
+const token = config.dev ? devToken : publicToken;
 
-const bot = new discordClient.Client({
-    intents: [
-      GatewayIntentBits.Guilds, 
-    ],
-    allowedMentions: { parse: ['users', 'roles'], repliedUser: true }
-})
+const bot = new Client({
+  intents: [GatewayIntentBits.Guilds],
+  allowedMentions: { parse: ["users", "roles"], repliedUser: true }
+});
 
-// Utilize the Hybrid Sharding instead of 
-//const Cluster = require('discord-hybrid-sharding');
-
-// Initiate client (with Cluster Manager handling shards)
-// const bot = new Client({
-//     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages], // The needed intents for the bot to function
-//     shards: Cluster.data.SHARD_LIST, // An array of shards that will get spawned (handled by Cluster Manager)
-//     shardCount: Cluster.data.TOTAL_SHARDS, // Total number of shards (handled by Cluster Manager)
-// });
-
-// initialize the Client, so we can access the .broadcastEval()
-// bot.cluster = new Cluster.Client(bot);
-
-// Command collection
 bot.commands = new Collection();
 bot.commandArray = [];
-
-// Buttons collection
 bot.buttons = new Collection();
+bot.cooldown = new Collection();
 
-// Cooldown collection
-bot.cooldown = new Collection(); 
+// Load all function handlers
+const functionFolders = readdirSync(path.join(__dirname, "functions"));
+for (const folder of functionFolders) {
+  const functionFiles = readdirSync(path.join(__dirname, "functions", folder)).filter(f => f.endsWith(".js"));
+  for (const file of functionFiles) {
+    require(path.join(__dirname, "functions", folder, file))(bot);
+  }
+}
+
+bot.handleEvents();
+bot.handleCommands();
+
+bot.login(token);
 
 // Pick presence
 // bot.pickPresence = async () => {
@@ -67,32 +59,36 @@ bot.cooldown = new Collection();
 //     })
 // }
 
-// Require functions for handlers (commands, components and events)
-const functionFolders = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/functions`)
-for (const folder of functionFolders) {
-    const functionFiles = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/functions/${folder}`).filter((file) => file.endsWith(".js"));
-    for (const file of functionFiles)
-        require(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/functions/${folder}/${file}`)(bot);
-}
-
-bot.handleEvents();
-bot.handleCommands();
-
-// Bot login
-bot.login(token);
-
-// Handle and log rejection errors without crashing process
-process.on('uncaughtException', (err, origin) => {
-    console.log(err.stack)
-    tools.CustomLog(`Caught exception: ${err}\n` + `Exception origin: ${origin}`);
+// Handle and log errors
+process.on("uncaughtException", (err, origin) => {
+  console.log(err.stack);
+  tools.CustomLog(`Caught exception: ${err}\nException origin: ${origin}`, "Error");
 });
 
-// Handle and log rejection errors without crashing process
-process.on('uncaughtExceptionMonitor', (err, origin) => {
-  console.log(`Uncaught Exception Monitor:`, err, origin)
+process.on("uncaughtExceptionMonitor", (err, origin) => {
+  console.log("Uncaught Exception Monitor:", err, origin);
 });
 
-// Handle and log rejection errors without crashing process
-process.on('unhandledRejection', async (reason, promise) => {
-  console.log(`Unhandled rejection at:`, promise, `reason:`, reason)
+process.on("unhandledRejection", (reason, promise) => {
+  console.log("Unhandled rejection at:", promise, "reason:", reason);
 });
+
+// Graceful shutdown to flush caches
+const gracefulShutdown = async () => {
+  try {
+    tools.CustomLog("Initiating graceful shutdown...", "Info");
+
+    // Flush all branch stats and leaderboard caches
+    await statsManager.flushAll();
+    await leaderboardManager.flushAll();
+
+    tools.CustomLog("All caches flushed successfully. Shutting down.", "Info");
+    process.exit(0);
+  } catch (error) {
+    tools.CustomLog(`Error during shutdown: ${error}`, "Error");
+    process.exit(1);
+  }
+};
+
+process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
