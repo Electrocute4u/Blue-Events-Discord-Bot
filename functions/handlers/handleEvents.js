@@ -7,16 +7,16 @@ module.exports = (bot) => {
     // Handle client and database events
     bot.handleEvents = async () => {
         // Fetches a synched version of /events folder for each event type
-        const eventFolders = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/events`);
+        const eventFolders = readdirSync(`./events`);
         for (const folder of eventFolders) {
-            const eventFiles = readdirSync(`${config.provider == true ? `/home/electrocute4u/bot` : `.`}/events/${folder}`).filter((file) => file.endsWith(".js"))
+            const eventFiles = readdirSync(`./events/${folder}`).filter((file) => file.endsWith(".js"))
 
             // Switch for event type
             switch (folder) {
                 // Bot Client
                 case "client":
                     for (const file of eventFiles) {
-                        const event = require(`${config.provider == true ? `/home/electrocute4u/bot` : `../..`}/events/${folder}/${file}`)
+                        const event = require(`../../events/${folder}/${file}`)
                         if (event.once) bot.once(event.name, (...args) =>
                             event.execute(...args, bot)
                         );
